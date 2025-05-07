@@ -1,4 +1,4 @@
-package db
+package postgres
 
 import (
 	"database/sql"
@@ -12,7 +12,7 @@ type Db struct {
 	*sql.DB
 }
 
-func NewConnectDb() *Db {
+func NewConnectDb() (*Db, error) {
 	dbUrl := os.Getenv("DB_URL")
 	db, err := sql.Open("postgres", dbUrl)
 	if err != nil {
@@ -22,5 +22,5 @@ func NewConnectDb() *Db {
 	if err != nil {
 		log.Fatal("Error pinging database: ", err)
 	}
-	return &Db{db}
+	return &Db{db}, nil
 }
