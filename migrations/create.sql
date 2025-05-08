@@ -26,3 +26,8 @@ CREATE TABLE IF NOT EXISTS movie_actors (
     actor_id INT REFERENCES actors(id) ON DELETE CASCADE,
     PRIMARY KEY(movie_id, actor_id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_movies_title ON movies(title);
+CREATE INDEX IF NOT EXISTS idx_movies_rating ON movies(rating DESC);
+CREATE INDEX IF NOT EXISTS idx_release_date ON movies(release_date DESC);
+CREATE INDEX IF NOT EXISTS idx_actors_name ON actors(name);

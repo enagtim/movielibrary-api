@@ -41,6 +41,55 @@ func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (
 
 }
 
+func (r *MovieRepository) GetAll(ctx context.Context, sortBy string) ([]model.Movie, error) {
+	validateSortFields := map[string]string{
+		"title":        "title",
+		"release_date": "release_date",
+		"rating":       "rating",
+	}
+	sortField, ok := validateSortFields[sortBy]
+
+	if !ok {
+		sortField = "rating"
+	}
+
+	query, args, err := sq.
+		Select("id", "title", "description", "release_date", "rating").
+		From("movies").
+		OrderBy(sortField + " DESC").
+		ToSql()
+
+	if err != nil {
+		return nil, consts.ErrFailedToBuildSQL
+	}
+
+	rows, err := r.Database.DB.QueryContext(ctx, query, args...)
+
+	if err != nil {
+		return nil, consts.ErrFailedToExecute
+	}
+
+	defer rows.Close()
+
+	var movies []model.Movie
+
+	for rows.Next() {
+		var m model.Movie
+		err := rows.Scan(
+			&m.ID,
+			&m.Title,
+			&m.Decription,
+			&m.ReleaseDate,
+			&m.Rating)
+		if err != nil {
+			return nil, consts.ErrFailedToScanRow
+		}
+		movies = append(movies, m)
+	}
+	return movies, nil
+
+}
+
 func (r *MovieRepository) GetByID(ctx context.Context, id uint) (*model.Movie, error) {
 	var movie model.Movie
 
@@ -54,7 +103,12 @@ func (r *MovieRepository) GetByID(ctx context.Context, id uint) (*model.Movie, e
 		return nil, consts.ErrFailedToBuildSQL
 	}
 
-	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.Title, &movie.Decription, &movie.ReleaseDate, &movie.Rating)
+	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(
+		&movie.ID,
+		&movie.Title,
+		&movie.Decription,
+		&movie.ReleaseDate,
+		&movie.Rating)
 
 	if err == sql.ErrNoRows {
 		return nil, consts.ErrMovieNotFound
@@ -145,5 +199,90 @@ func (r *MovieRepository) Delete(ctx context.Context, id uint) error {
 	}
 
 	return nil
+
+}
+
+func (r *MovieRepository) SearchMovieByTitle(ctx context.Context, title string) ([]model.Movie, error) {
+	query, args, err := sq.
+		Select("id", "title", "release_date", "rating").
+		From("movies").
+		Where(sq.Like{"title": "%" + title + "%"}).
+		ToSql()
+	if err != nil {
+		return nil, consts.ErrFailedToBuildSQL
+	}
+
+	rows, err := r.Database.DB.QueryContext(ctx, query, args...)
+
+	if err != nil {
+		return nil, consts.ErrFailedToExecute
+	}
+
+	defer rows.Close()
+
+	var movies []model.Movie
+
+	for rows.Next() {
+		var movie model.Movie
+		err := rows.Scan(
+			&movie.ID,
+			&movie.Title,
+			&movie.Decription,
+			&movie.ReleaseDate,
+			&movie.Rating,
+		)
+		if err != nil {
+			return nil, consts.ErrFailedToScanRow
+		}
+		movies = append(movies, movie)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, consts.ErrFailedToProcessRows
+	}
+	return movies, nil
+}
+
+func (r *MovieRepository) SearchMovieByActorName(ctx context.Context, actorName string) ([]model.Movie, error) {
+	query, args, err := sq.
+		Select("movies.id", "movies.title", "movies.description", "movies.release_date", "movies.rating").
+		From("movies").
+		Join("movie_actors ON movie_actors.movie_id = movies.id").
+		Join("actors ON actors.id = movie_actors.actor_id").
+		Where(sq.Like{"actors.name": "%" + actorName + "%"}).
+		ToSql()
+	if err != nil {
+		return nil, consts.ErrFailedToBuildSQL
+	}
+	rows, err := r.Database.DB.QueryContext(ctx, query, args...)
+
+	if err != nil {
+		return nil, consts.ErrFailedToExecute
+	}
+
+	defer rows.Close()
+
+	var movies []model.Movie
+
+	for rows.Next() {
+		var movie model.Movie
+		err := rows.Scan(
+			&movie.ID,
+			&movie.Title,
+			&movie.Decription,
+			&movie.ReleaseDate,
+			&movie.Rating,
+		)
+		if err != nil {
+			return nil, consts.ErrFailedToScanRow
+		}
+		movies = append(movies, movie)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, consts.ErrFailedToProcessRows
+	}
+
+	return movies, nil
 
 }

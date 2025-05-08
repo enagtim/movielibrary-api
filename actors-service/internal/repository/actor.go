@@ -9,6 +9,7 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 )
 
 type ActorRepository struct {
@@ -41,6 +42,52 @@ func (r *ActorRepository) Create(ctx context.Context, p *payload.ActorPaylod) (u
 	return actorID, nil
 }
 
+func (r *ActorRepository) GetActorsWithMovies(ctx context.Context) ([]model.ActorWithMovies, error) {
+	query, args, err := sq.
+		Select(
+			"actors.id",
+			"actors.name",
+			"actors.gender",
+			"actors.birth_date",
+			"ARRAY_AGG(movies.title) AS movies",
+		).
+		From("actors").
+		Join("movie_actors ON movie_actors.actor_id = actors.id").
+		Join("movies ON movies.id = movie_actors.movie_id").
+		GroupBy("actors.id", "actors.name", "actors.gender", "actors.birth_date").
+		ToSql()
+
+	if err != nil {
+		return nil, consts.ErrFailedToBuildSQL
+	}
+
+	rows, err := r.Database.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, consts.ErrFailedToExecute
+	}
+	defer rows.Close()
+
+	var results []model.ActorWithMovies
+
+	for rows.Next() {
+		var actor model.ActorWithMovies
+		err := rows.Scan(
+			&actor.ID,
+			&actor.Name,
+			&actor.Gender,
+			&actor.BirthDate,
+			pq.Array(&actor.Movies),
+		)
+		if err != nil {
+			return nil, consts.ErrFailedToScanRow
+		}
+		results = append(results, actor)
+	}
+
+	return results, nil
+
+}
+
 func (r *ActorRepository) GetById(ctx context.Context, id uint) (*model.Actor, error) {
 	var actor model.Actor
 
@@ -53,7 +100,12 @@ func (r *ActorRepository) GetById(ctx context.Context, id uint) (*model.Actor, e
 		return nil, consts.ErrFailedToBuildSQL
 	}
 
-	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&actor.ID, &actor.Name, &actor.Gender, &actor.BirthDate)
+	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(
+		&actor.ID,
+		&actor.Name,
+		&actor.Gender,
+		&actor.BirthDate,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, consts.ErrActorNotFound

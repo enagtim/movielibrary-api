@@ -10,4 +10,5 @@ var (
 	ErrFailedToExecute     = errors.New("failed to execute query")
 	ErrInvalidAffectedrows = errors.New("failed to get affected rows")
 	ErrFailedDeleteActor   = errors.New("failed to delete actor")
+	ErrFailedToScanRow     = errors.New("failed to scan row")
 )

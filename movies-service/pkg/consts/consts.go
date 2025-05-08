@@ -10,4 +10,6 @@ var (
 	ErrFailedToExecute     = errors.New("failed to execute query")
 	ErrInvalidAffectedrows = errors.New("failed to get affected rows")
 	ErrFailedDeleteMovie   = errors.New("failed to delete movie")
+	ErrFailedToScanRow     = errors.New("failed to scan row")
+	ErrFailedToProcessRows = errors.New("failed to process rows")
 )
