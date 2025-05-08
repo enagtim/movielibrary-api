@@ -4,9 +4,9 @@ import (
 	"actors-service/internal/model"
 	"actors-service/internal/payload"
 	"actors-service/internal/postgres"
+	"actors-service/pkg/consts"
 	"context"
 	"database/sql"
-	"errors"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -27,7 +27,7 @@ func (r *ActorRepository) Create(ctx context.Context, p *payload.ActorPaylod) (u
 		Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
-		return 0, errors.New("failed to build query")
+		return 0, consts.ErrFailedToBuildSQL
 	}
 
 	var actorID uint
@@ -35,7 +35,7 @@ func (r *ActorRepository) Create(ctx context.Context, p *payload.ActorPaylod) (u
 	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&actorID)
 
 	if err != nil {
-		return 0, errors.New("failed to create actor")
+		return 0, consts.ErrFailedCreateActor
 	}
 
 	return actorID, nil
@@ -50,17 +50,13 @@ func (r *ActorRepository) GetById(ctx context.Context, id uint) (*model.Actor, e
 		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
-		return nil, errors.New("failed to build query")
+		return nil, consts.ErrFailedToBuildSQL
 	}
 
 	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&actor.ID, &actor.Name, &actor.Gender, &actor.BirthDate)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.New("actor not found")
-	}
-
-	if err != nil {
-		return nil, errors.New("failed to get actor")
+		return nil, consts.ErrActorNotFound
 	}
 
 	return &actor, nil
@@ -74,11 +70,11 @@ func (r *ActorRepository) FullUpdate(ctx context.Context, id uint, p *payload.Ac
 		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
-		return errors.New("failed to build update query")
+		return consts.ErrFailedToBuildSQL
 	}
 	_, err = r.Database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-		return errors.New("failed to update actor")
+		return consts.ErrFailedUpdateActor
 	}
 	return nil
 }
@@ -99,19 +95,19 @@ func (r *ActorRepository) PartialhUpdate(ctx context.Context, id uint, p *payloa
 	query, args, err := updateBuilder.ToSql()
 
 	if err != nil {
-		return errors.New("failed to build update query")
+		return consts.ErrFailedToBuildSQL
 	}
 
 	res, err := r.Database.DB.ExecContext(ctx, query, args...)
 
 	if err != nil {
-		return errors.New("failed to execute partial update")
+		return consts.ErrFailedToExecute
 	}
 
 	rows, err := res.RowsAffected()
 
 	if err != nil {
-		return errors.New("failed to get affected rows")
+		return consts.ErrInvalidAffectedrows
 	}
 
 	if rows == 0 {
@@ -129,13 +125,13 @@ func (r *ActorRepository) Delete(ctx context.Context, id uint) error {
 		ToSql()
 
 	if err != nil {
-		return errors.New("failed to build delete query")
+		return consts.ErrFailedToBuildSQL
 	}
 
 	_, err = r.Database.DB.ExecContext(ctx, query, args...)
 
 	if err != nil {
-		return errors.New("failed to delete actor")
+		return consts.ErrFailedDeleteActor
 	}
 
 	return nil

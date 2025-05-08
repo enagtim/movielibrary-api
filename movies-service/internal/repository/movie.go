@@ -3,10 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"movies-service/internal/model"
 	"movies-service/internal/payload"
 	"movies-service/internal/postgres"
+	"movies-service/pkg/consts"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -27,14 +27,14 @@ func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (
 		Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
-		return 0, errors.New("failed to build query")
+		return 0, consts.ErrFailedToBuildSQL
 	}
 	var movieID uint
 
 	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&movieID)
 
 	if err != nil {
-		return 0, errors.New("failed to create movie")
+		return 0, consts.ErrFailedCreateMovie
 	}
 
 	return movieID, nil
@@ -51,13 +51,13 @@ func (r *MovieRepository) GetByID(ctx context.Context, id uint) (*model.Movie, e
 		ToSql()
 
 	if err != nil {
-		return nil, errors.New("failed to build query")
+		return nil, consts.ErrFailedToBuildSQL
 	}
 
 	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.Title, &movie.Decription, &movie.ReleaseDate, &movie.Rating)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.New("failed to get movie")
+		return nil, consts.ErrMovieNotFound
 	}
 
 	return &movie, nil
@@ -74,13 +74,13 @@ func (r *MovieRepository) FullUpdate(ctx context.Context, id uint, p *payload.Mo
 		ToSql()
 
 	if err != nil {
-		return errors.New("failed to build query")
+		return consts.ErrFailedToBuildSQL
 	}
 
 	_, err = r.Database.DB.ExecContext(ctx, query, args...)
 
 	if err != nil {
-		return errors.New("failed to update movie")
+		return consts.ErrFailedUpdateMovie
 	}
 
 	return nil
@@ -107,17 +107,17 @@ func (r *MovieRepository) PartialUpdate(ctx context.Context, id uint, p *payload
 	query, args, err := updateBuilder.ToSql()
 
 	if err != nil {
-		return errors.New("failed to build query")
+		return consts.ErrFailedToBuildSQL
 	}
 
 	res, err := r.Database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
-		return errors.New("failed to execute partial update")
+		return consts.ErrFailedToExecute
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return errors.New("failed to get affected rows")
+		return consts.ErrInvalidAffectedrows
 	}
 
 	if rows == 0 {
@@ -135,13 +135,13 @@ func (r *MovieRepository) Delete(ctx context.Context, id uint) error {
 		ToSql()
 
 	if err != nil {
-		return errors.New("failed to build query")
+		return consts.ErrFailedToBuildSQL
 	}
 
 	_, err = r.Database.DB.ExecContext(ctx, query, args...)
 
 	if err != nil {
-		return errors.New("failed to delete movie")
+		return consts.ErrFailedDeleteMovie
 	}
 
 	return nil
