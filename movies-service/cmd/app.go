@@ -1,9 +1,9 @@
 package main
 
 import (
-	"actors-service/internal/postgres"
-	"actors-service/internal/repository"
 	"log"
+	"movies-service/internal/postgres"
+	"movies-service/internal/repository"
 	"net/http"
 )
 
@@ -18,15 +18,15 @@ func Run() error {
 
 	defer db.Close()
 
-	actorRepo := repository.NewActorRepository(db)
+	movieRepository := repository.NewMovieRepository(db)
 
-	log.Println("Actor repository initialized:", actorRepo)
+	log.Println("Movie repository initialized:", movieRepository)
 
 	server := http.Server{
-		Addr:    ":8003",
+		Addr:    ":8002",
 		Handler: router,
 	}
-	log.Println("Actors microservice start on port 8003")
+	log.Println("Movies microservice start on port 8002")
 
 	server.ListenAndServe()
 
@@ -37,6 +37,6 @@ func Run() error {
 func main() {
 	err := Run()
 	if err != nil {
-		log.Fatalf("Actors microservice failed: %v", err)
+		log.Fatalf("Movies microservice failed: %v", err)
 	}
 }

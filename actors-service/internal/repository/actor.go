@@ -19,11 +19,11 @@ func NewActorRepository(db *postgres.Db) *ActorRepository {
 	return &ActorRepository{Database: db}
 }
 
-func (r *ActorRepository) Create(ctx context.Context, payload payload.ActorPaylod) (uint, error) {
+func (r *ActorRepository) Create(ctx context.Context, p *payload.ActorPaylod) (uint, error) {
 	query, args, err := sq.
 		Insert("actors").
 		Columns("name", "gender", "birth_date").
-		Values(payload.Name, payload.Gender, payload.BirthDate).
+		Values(p.Name, p.Gender, p.BirthDate).
 		Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
@@ -66,11 +66,11 @@ func (r *ActorRepository) GetById(ctx context.Context, id uint) (*model.Actor, e
 	return &actor, nil
 }
 
-func (r *ActorRepository) PutUpdate(ctx context.Context, id uint, payload payload.ActorPaylod) error {
+func (r *ActorRepository) FullUpdate(ctx context.Context, id uint, p *payload.ActorPaylod) error {
 	query, args, err := sq.
-		Update("actors").Set("name", payload.Name).
-		Set("gender", payload.Gender).
-		Set("birth_date", payload.BirthDate).
+		Update("actors").Set("name", p.Name).
+		Set("gender", p.Gender).
+		Set("birth_date", p.BirthDate).
 		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
@@ -83,17 +83,17 @@ func (r *ActorRepository) PutUpdate(ctx context.Context, id uint, payload payloa
 	return nil
 }
 
-func (r *ActorRepository) PatchUpdate(ctx context.Context, id uint, payload payload.PartialUpdateActorPaylod) error {
+func (r *ActorRepository) PartialhUpdate(ctx context.Context, id uint, p *payload.PartialUpdateActorPaylod) error {
 	updateBuilder := sq.Update("actors").Where(sq.Eq{"id": id})
 
-	if payload.Name != nil {
-		updateBuilder = updateBuilder.Set("name", *payload.Name)
+	if p.Name != nil {
+		updateBuilder = updateBuilder.Set("name", *p.Name)
 	}
-	if payload.Gender != nil {
-		updateBuilder = updateBuilder.Set("gender", *payload.Gender)
+	if p.Gender != nil {
+		updateBuilder = updateBuilder.Set("gender", *p.Gender)
 	}
-	if payload.BirthDate != nil {
-		updateBuilder = updateBuilder.Set("birth_date", *payload.BirthDate)
+	if p.BirthDate != nil {
+		updateBuilder = updateBuilder.Set("birth_date", *p.BirthDate)
 	}
 
 	query, args, err := updateBuilder.ToSql()
