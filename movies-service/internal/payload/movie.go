@@ -7,6 +7,7 @@ type MoviePayload struct {
 	Description *string   `json:"description" validate:"max=1000"`
 	ReleaseDate time.Time `json:"release_date" validate:"required"`
 	Rating      float64   `json:"rating" validate:"gte=0,lte=10"`
+	ActorsIDs   []uint    `json:"actors_ids" validate:"required"`
 }
 
 type UpdatePartialMoviePayload struct {

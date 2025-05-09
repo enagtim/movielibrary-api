@@ -20,6 +20,18 @@ func NewMovieRepository(db *postgres.Db) *MovieRepository {
 }
 
 func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (uint, error) {
+	tx, err := r.Database.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, consts.ErrFailedToBeginTx
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
 	query, args, err := sq.
 		Insert("movies").
 		Columns("title", "description", "release_date", "rating").
@@ -31,10 +43,25 @@ func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (
 	}
 	var movieID uint
 
-	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&movieID)
+	err = tx.QueryRowContext(ctx, query, args...).Scan(&movieID)
 
 	if err != nil {
 		return 0, consts.ErrFailedCreateMovie
+	}
+
+	for _, actorID := range p.ActorsIDs {
+		linkQuery, linkArgs, err := sq.
+			Insert("movie_actors").
+			Columns("movie_id", "actor_id").
+			Values(movieID, actorID).
+			ToSql()
+		if err != nil {
+			return 0, consts.ErrFailedToBuildSQL
+		}
+		_, err = tx.ExecContext(ctx, linkQuery, linkArgs...)
+		if err != nil {
+			return 0, consts.ErrFailedToLinkActors
+		}
 	}
 
 	return movieID, nil
