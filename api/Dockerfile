@@ -15,15 +15,15 @@ RUN go mod download
 COPY . .
 
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o api-gateway ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd
 
 
 FROM alpine:3.21
 WORKDIR /app
 
 
-COPY --from=builder /app/api-gateway .
+COPY --from=builder /app/api .
 
 EXPOSE 8080
 
-CMD ["./api-gateway"]
+CMD ["./api"]
