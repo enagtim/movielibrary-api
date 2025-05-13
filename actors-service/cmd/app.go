@@ -1,8 +1,10 @@
 package main
 
 import (
+	"actors-service/internal/handler"
 	"actors-service/internal/postgres"
 	"actors-service/internal/repository"
+	"actors-service/internal/service"
 	"log"
 	"net/http"
 )
@@ -19,8 +21,12 @@ func Run() error {
 	defer db.Close()
 
 	actorRepo := repository.NewActorRepository(db)
+	actorService := service.NewActorService(actorRepo)
+
+	handler.NewActorHandler(router, actorService)
 
 	log.Println("Actor repository initialized:", actorRepo)
+	log.Println("Actor service initialized:", actorService)
 
 	server := http.Server{
 		Addr:    ":8003",

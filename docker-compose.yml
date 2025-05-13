@@ -20,8 +20,8 @@ services:
       DB_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
     depends_on:
       - db
-  api:
-    build: ./api
+  api-gateway:
+    build: ./api-gateway
     env_file: .env
     ports:
       - "8080:8080"

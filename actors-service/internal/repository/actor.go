@@ -20,7 +20,7 @@ func NewActorRepository(db *postgres.Db) *ActorRepository {
 	return &ActorRepository{Database: db}
 }
 
-func (r *ActorRepository) Create(ctx context.Context, p *payload.ActorPaylod) (uint, error) {
+func (r *ActorRepository) Create(ctx context.Context, p *payload.ActorPayload) (uint, error) {
 	query, args, err := sq.
 		Insert("actors").
 		Columns("name", "gender", "birth_date").
@@ -114,7 +114,7 @@ func (r *ActorRepository) GetById(ctx context.Context, id uint) (*model.Actor, e
 	return &actor, nil
 }
 
-func (r *ActorRepository) FullUpdate(ctx context.Context, id uint, p *payload.ActorPaylod) error {
+func (r *ActorRepository) FullUpdate(ctx context.Context, id uint, p *payload.ActorPayload) error {
 	query, args, err := sq.
 		Update("actors").Set("name", p.Name).
 		Set("gender", p.Gender).
@@ -131,7 +131,7 @@ func (r *ActorRepository) FullUpdate(ctx context.Context, id uint, p *payload.Ac
 	return nil
 }
 
-func (r *ActorRepository) PartialhUpdate(ctx context.Context, id uint, p *payload.PartialUpdateActorPaylod) error {
+func (r *ActorRepository) PartialUpdate(ctx context.Context, id uint, p *payload.PartialUpdateActorPayload) error {
 	updateBuilder := sq.Update("actors").Where(sq.Eq{"id": id})
 
 	if p.Name != nil {

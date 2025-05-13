@@ -2,8 +2,10 @@ package main
 
 import (
 	"log"
+	"movies-service/internal/handler"
 	"movies-service/internal/postgres"
 	"movies-service/internal/repository"
+	"movies-service/internal/service"
 	"net/http"
 )
 
@@ -19,8 +21,12 @@ func Run() error {
 	defer db.Close()
 
 	movieRepository := repository.NewMovieRepository(db)
+	movieService := service.NewMovieService(movieRepository)
+
+	handler.NewMovieHandler(router, movieService)
 
 	log.Println("Movie repository initialized:", movieRepository)
+	log.Println("Movie service initialized:", movieService)
 
 	server := http.Server{
 		Addr:    ":8002",
