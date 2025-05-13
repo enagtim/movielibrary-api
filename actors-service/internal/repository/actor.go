@@ -26,6 +26,7 @@ func (r *ActorRepository) Create(ctx context.Context, p *payload.ActorPayload) (
 		Columns("name", "gender", "birth_date").
 		Values(p.Name, p.Gender, p.BirthDate).
 		Suffix("RETURNING id").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return 0, consts.ErrFailedToBuildSQL
@@ -55,6 +56,7 @@ func (r *ActorRepository) GetActorsWithMovies(ctx context.Context) ([]model.Acto
 		Join("movie_actors ON movie_actors.actor_id = actors.id").
 		Join("movies ON movies.id = movie_actors.movie_id").
 		GroupBy("actors.id", "actors.name", "actors.gender", "actors.birth_date").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
@@ -95,6 +97,7 @@ func (r *ActorRepository) GetById(ctx context.Context, id uint) (*model.Actor, e
 		Select("id", "name", "gender", "birth_date").
 		From("actors").
 		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return nil, consts.ErrFailedToBuildSQL
@@ -120,6 +123,7 @@ func (r *ActorRepository) FullUpdate(ctx context.Context, id uint, p *payload.Ac
 		Set("gender", p.Gender).
 		Set("birth_date", p.BirthDate).
 		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
@@ -144,7 +148,7 @@ func (r *ActorRepository) PartialUpdate(ctx context.Context, id uint, p *payload
 		updateBuilder = updateBuilder.Set("birth_date", *p.BirthDate)
 	}
 
-	query, args, err := updateBuilder.ToSql()
+	query, args, err := updateBuilder.PlaceholderFormat(sq.Dollar).ToSql()
 
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
@@ -174,6 +178,7 @@ func (r *ActorRepository) Delete(ctx context.Context, id uint) error {
 	query, args, err := sq.
 		Delete("actors").
 		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {

@@ -131,7 +131,12 @@ func (h *ActorHandler) FullUpdateActorByID() http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		data := &payload.ActorResponse{
+			Message: "Actor was updated",
+		}
+
+		res.ResJson(w, data, http.StatusOK)
+
 	}
 }
 
@@ -162,7 +167,11 @@ func (h *ActorHandler) PartialUpdateActorByID() http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		data := &payload.ActorResponse{
+			Message: "Actor was updated",
+		}
+
+		res.ResJson(w, data, http.StatusOK)
 
 	}
 }
@@ -188,6 +197,10 @@ func (h *ActorHandler) DeleteActor() http.HandlerFunc {
 			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		data := &payload.ActorResponse{
+			Message: "Actor was deleted",
+		}
+
+		res.ResJson(w, data, http.StatusOK)
 	}
 }

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"api-gateway/pkg/res"
 	"context"
 	"net/http"
 	"os"
@@ -30,24 +31,25 @@ func CheckRoleAndMethod(requiredRole string, allowedMethods []string, next http.
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, "invalid token", http.StatusUnauthorized)
+			res.ErrResJson(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			http.Error(w, "invalid claims", http.StatusUnauthorized)
+			res.ErrResJson(w, "invalid claims", http.StatusUnauthorized)
 			return
 		}
 
 		role, ok := claims["role"].(string)
+
 		if !ok || (requiredRole == "admin" && role != "admin") {
-			http.Error(w, "access denied", http.StatusForbidden)
+			res.ErrResJson(w, "access denied", http.StatusForbidden)
 			return
 		}
 
 		if !isMethodAllowed(r.Method, allowedMethods) {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			res.ErrResJson(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 

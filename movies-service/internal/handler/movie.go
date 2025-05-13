@@ -139,7 +139,11 @@ func (h *MovieHandler) FullUpdateMovieByID() http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		data := &payload.MovieResponse{
+			Message: "Movie was updated",
+		}
+
+		res.ResJson(w, data, http.StatusOK)
 
 	}
 }
@@ -173,7 +177,11 @@ func (h *MovieHandler) PartialUpdateMovieByID() http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		data := &payload.MovieResponse{
+			Message: "Movie was updated",
+		}
+
+		res.ResJson(w, data, http.StatusOK)
 	}
 }
 
@@ -199,7 +207,11 @@ func (h *MovieHandler) DeleteMovieByID() http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		data := &payload.MovieResponse{
+			Message: "Movie was deleted",
+		}
+
+		res.ResJson(w, data, http.StatusOK)
 
 	}
 }
@@ -214,7 +226,7 @@ func (h *MovieHandler) SearchMovieByTitle() http.HandlerFunc {
 		movies, err := h.MovieService.SearchMovieByTitle(ctx, title)
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -235,7 +247,7 @@ func (h *MovieHandler) SearchMovieByActorName() http.HandlerFunc {
 		movies, err := h.MovieService.SearchMovieByActorName(ctx, actorName)
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
