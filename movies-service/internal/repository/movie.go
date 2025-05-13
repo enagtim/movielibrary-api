@@ -37,6 +37,7 @@ func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (
 		Columns("title", "description", "release_date", "rating").
 		Values(p.Title, p.Description, p.ReleaseDate, p.Rating).
 		Suffix("RETURNING id").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return 0, consts.ErrFailedToBuildSQL
@@ -54,6 +55,7 @@ func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (
 			Insert("movie_actors").
 			Columns("movie_id", "actor_id").
 			Values(movieID, actorID).
+			PlaceholderFormat(sq.Dollar).
 			ToSql()
 		if err != nil {
 			return 0, consts.ErrFailedToBuildSQL
@@ -84,6 +86,7 @@ func (r *MovieRepository) GetAll(ctx context.Context, sortBy string) ([]model.Mo
 		Select("id", "title", "description", "release_date", "rating").
 		From("movies").
 		OrderBy(sortField + " DESC").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
@@ -124,6 +127,7 @@ func (r *MovieRepository) GetByID(ctx context.Context, id uint) (*model.Movie, e
 		Select("id", "title", "description", "release_date", "rating").
 		From("movies").
 		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
@@ -152,6 +156,7 @@ func (r *MovieRepository) FullUpdate(ctx context.Context, id uint, p *payload.Mo
 		Set("release_date", p.ReleaseDate).
 		Set("rating", p.Rating).
 		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
@@ -189,7 +194,7 @@ func (r *MovieRepository) PartialUpdate(ctx context.Context, id uint, p *payload
 		updateBuilder = updateBuilder.Set("actors_ids", *p.ActorsIDs)
 	}
 
-	query, args, err := updateBuilder.ToSql()
+	query, args, err := updateBuilder.PlaceholderFormat(sq.Dollar).ToSql()
 
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
@@ -217,6 +222,7 @@ func (r *MovieRepository) Delete(ctx context.Context, id uint) error {
 	query, args, err := sq.
 		Delete("movies").
 		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
@@ -235,9 +241,10 @@ func (r *MovieRepository) Delete(ctx context.Context, id uint) error {
 
 func (r *MovieRepository) SearchMovieByTitle(ctx context.Context, title string) ([]model.Movie, error) {
 	query, args, err := sq.
-		Select("id", "title", "release_date", "rating").
+		Select("id", "title", "description", "release_date", "rating").
 		From("movies").
 		Where(sq.Like{"title": "%" + title + "%"}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return nil, consts.ErrFailedToBuildSQL
@@ -281,6 +288,7 @@ func (r *MovieRepository) SearchMovieByActorName(ctx context.Context, actorName 
 		Join("movie_actors ON movie_actors.movie_id = movies.id").
 		Join("actors ON actors.id = movie_actors.actor_id").
 		Where(sq.Like{"actors.name": "%" + actorName + "%"}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return nil, consts.ErrFailedToBuildSQL

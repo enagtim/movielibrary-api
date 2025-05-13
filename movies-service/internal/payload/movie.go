@@ -26,6 +26,10 @@ type CreateMovieResponse struct {
 	Message string `json:"message"`
 }
 
+type MovieResponse struct {
+	Message string `json:"message"`
+}
+
 type GetAllMoviesResponse struct {
 	Data []model.Movie `json:"data"`
 }
