@@ -26,6 +26,7 @@ func (r *AuthRepository) Register(ctx context.Context, p *payload.AuthRegisterPa
 		Columns("username", "password_hash", "role").
 		Values(p.Username, p.Password, p.Role).
 		Suffix("RETURNING id").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
@@ -49,6 +50,7 @@ func (r *AuthRepository) GetUserByUsername(ctx context.Context, username string)
 		Select("id", "username", "password_hash", "role").
 		From("users").
 		Where(sq.Eq{"username": username}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return nil, consts.ErrFailedToBuildSQL
