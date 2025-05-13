@@ -1,6 +1,9 @@
 package payload
 
-import "time"
+import (
+	"movies-service/internal/model"
+	"time"
+)
 
 type MoviePayload struct {
 	Title       string    `json:"title" validate:"required,min=1,max=150"`
@@ -15,4 +18,14 @@ type UpdatePartialMoviePayload struct {
 	Description *string    `json:"description" validate:"max=1000"`
 	ReleaseDate *time.Time `json:"release_date"`
 	Rating      *float64   `json:"rating" validate:"gte=0,lte=10"`
+	ActorsIDs   *[]uint    `json:"actors_ids"`
+}
+
+type CreateMovieResponse struct {
+	MovieID uint   `json:"movieID"`
+	Message string `json:"message"`
+}
+
+type GetAllMoviesResponse struct {
+	Data []model.Movie `json:"data"`
 }
