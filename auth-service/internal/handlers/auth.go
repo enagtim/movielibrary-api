@@ -20,6 +20,7 @@ func NewAuthHandler(router *http.ServeMux, authService *service.AuthService) {
 	}
 
 	router.HandleFunc("POST /auth/register", handler.RegisterUser())
+	router.HandleFunc("POST /auth/login", handler.LoginUser())
 
 }
 
