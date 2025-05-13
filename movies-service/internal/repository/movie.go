@@ -105,7 +105,7 @@ func (r *MovieRepository) GetAll(ctx context.Context, sortBy string) ([]model.Mo
 		err := rows.Scan(
 			&m.ID,
 			&m.Title,
-			&m.Decription,
+			&m.Description,
 			&m.ReleaseDate,
 			&m.Rating)
 		if err != nil {
@@ -133,7 +133,7 @@ func (r *MovieRepository) GetByID(ctx context.Context, id uint) (*model.Movie, e
 	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(
 		&movie.ID,
 		&movie.Title,
-		&movie.Decription,
+		&movie.Description,
 		&movie.ReleaseDate,
 		&movie.Rating)
 
@@ -183,6 +183,10 @@ func (r *MovieRepository) PartialUpdate(ctx context.Context, id uint, p *payload
 
 	if p.Rating != nil {
 		updateBuilder = updateBuilder.Set("rating", *p.Rating)
+	}
+
+	if p.ActorsIDs != nil {
+		updateBuilder = updateBuilder.Set("actors_ids", *p.ActorsIDs)
 	}
 
 	query, args, err := updateBuilder.ToSql()
@@ -254,7 +258,7 @@ func (r *MovieRepository) SearchMovieByTitle(ctx context.Context, title string) 
 		err := rows.Scan(
 			&movie.ID,
 			&movie.Title,
-			&movie.Decription,
+			&movie.Description,
 			&movie.ReleaseDate,
 			&movie.Rating,
 		)
@@ -296,7 +300,7 @@ func (r *MovieRepository) SearchMovieByActorName(ctx context.Context, actorName 
 		err := rows.Scan(
 			&movie.ID,
 			&movie.Title,
-			&movie.Decription,
+			&movie.Description,
 			&movie.ReleaseDate,
 			&movie.Rating,
 		)
