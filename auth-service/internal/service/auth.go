@@ -4,6 +4,7 @@ import (
 	"auth-service/internal/payload"
 	"auth-service/internal/repository"
 	"auth-service/pkg/consts"
+	"auth-service/pkg/jwt"
 	"context"
 
 	"golang.org/x/crypto/bcrypt"
@@ -36,5 +37,28 @@ func (s *AuthService) Register(ctx context.Context, p *payload.AuthRegisterPaylo
 	}
 
 	return userID, nil
+
+}
+
+func (s *AuthService) Login(ctx context.Context, p *payload.AuthLoginPayload) (string, error) {
+	user, err := s.AuthRepository.GetUserByUsername(ctx, p.Username)
+
+	if err != nil {
+		return "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(p.Password))
+
+	if err != nil {
+		return "", consts.ErrInvalidCredentials
+	}
+
+	token, err := jwt.GenerateToken(user.ID, user.Role)
+
+	if err != nil {
+		return "", consts.ErrGenerateToken
+	}
+
+	return token, nil
 
 }

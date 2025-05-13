@@ -19,7 +19,7 @@ func NewAuthHandler(router *http.ServeMux, authService *service.AuthService) {
 		AuthService: authService,
 	}
 
-	router.HandleFunc("POST /auth", handler.RegisterUser())
+	router.HandleFunc("POST /auth/register", handler.RegisterUser())
 
 }
 
@@ -51,5 +51,30 @@ func (h *AuthHandler) RegisterUser() http.HandlerFunc {
 
 		res.ResJson(w, data, http.StatusCreated)
 
+	}
+}
+
+func (h *AuthHandler) LoginUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		body, err := req.DecodedAndValidatedBody[payload.AuthLoginPayload](r.Body)
+		if err != nil {
+			res.ErrResJson(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		token, err := h.AuthService.Login(ctx, &body)
+		if err != nil {
+			res.ErrResJson(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		data := &payload.AuthLoginResponse{
+			Token: token,
+		}
+
+		res.ResJson(w, data, http.StatusOK)
 	}
 }
