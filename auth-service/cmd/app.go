@@ -19,6 +19,8 @@ func Run() error {
 		log.Panicln(err)
 	}
 
+	log.Println("Postgres DB connected: ", db)
+
 	defer db.Close()
 
 	authRepository := repository.NewAuthRepository(db)
