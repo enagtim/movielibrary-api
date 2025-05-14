@@ -7,14 +7,33 @@ RESTful API for managing movies, actors, and their relationships with user authe
 `http://localhost:8080/api`
 
 ## Initialization
-`git clone git@github.com:enagtim/movielibrary-api.git`
-`cd movielibrary-api`
-`create .env file in the root of the project`
-`add field:`
-`DB_USER=postgres`
-`DB_PASSWORD=secret`
-`DB_NAME=filmlibrary`
-`JWT_SECRET="/2+XnmJGz1j3ehIVI/5P9kl+CghrE3DcS7rnT+qar5w="`
+
+1. Clone repository:
+
+   ```bash
+   git clone git@github.com:enagtim/movielibrary-api.git
+   ```
+
+2. Open directory:
+
+   ```bash
+   cd movielibrary-api
+   ```
+
+3. Create file `.env` in the root of the project:
+
+   ```bash
+   touch .env
+   ```
+
+4. Open `.env` and add:
+
+   ```
+   DB_USER=postgres
+   DB_PASSWORD=secret
+   DB_NAME=filmlibrary
+   JWT_SECRET="/2+XnmJGz1j3ehIVI/5P9kl+CghrE3DcS7rnT+qar5w="
+   ```
 
 ## Authentication
 Requires JWT token for protected endpoints (except `/auth/register` and `/auth/login`).
