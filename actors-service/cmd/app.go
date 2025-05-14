@@ -5,8 +5,13 @@ import (
 	"actors-service/internal/postgres"
 	"actors-service/internal/repository"
 	"actors-service/internal/service"
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func Run() error {
@@ -17,8 +22,6 @@ func Run() error {
 	}
 
 	log.Println("Postgres DB connected: ", db)
-
-	defer db.Close()
 
 	actorRepo := repository.NewActorRepository(db)
 	actorService := service.NewActorService(actorRepo)
@@ -32,9 +35,39 @@ func Run() error {
 		Addr:    ":8003",
 		Handler: router,
 	}
-	log.Println("Actors microservice start on port 8003")
 
-	server.ListenAndServe()
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		log.Println("Actors microservice start on port 8003")
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe error: %v", err)
+		}
+	}()
+
+	<-quit
+	log.Println("Shutting down actors microservice...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancel()
+
+	err = server.Shutdown(ctx)
+
+	if err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	err = db.Close()
+
+	if err != nil {
+		log.Printf("Error closing database: %v", err)
+	}
+
+	log.Println("Actor microservice stopped gracefully")
 
 	return nil
 
@@ -43,6 +76,6 @@ func Run() error {
 func main() {
 	err := Run()
 	if err != nil {
-		log.Fatalf("Actors microservice failed: %v", err)
+		log.Fatalf("Actor microservice failed: %v", err)
 	}
 }

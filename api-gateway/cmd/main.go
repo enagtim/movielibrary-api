@@ -2,11 +2,15 @@ package main
 
 import (
 	"api-gateway/middleware"
+	"context"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func proxyToService(target string, prefix string) http.Handler {
@@ -78,6 +82,34 @@ func main() {
 		proxyToService("movies:8002", "/api/admin"),
 	))
 
-	log.Println("API Gateway started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	server := http.Server{
+		Addr: ":8080",
+	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		log.Println("API Gateway started on :8080")
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe error: %v", err)
+		}
+	}()
+
+	<-quit
+	log.Println("Shutting down API Gateway...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancel()
+
+	err := server.Shutdown(ctx)
+
+	if err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("API-gateway stopped gracefully")
+
 }
