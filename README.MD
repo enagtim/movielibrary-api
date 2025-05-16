@@ -1,32 +1,32 @@
-# Movie Actors API Documentation
+# Movielibrary api документация
 
-## Overview
-RESTful API for managing movies, actors, and their relationships with user authentication.
+## Обзор
+RESTful API для управления фильмами, актерами и их отношениями с аутентификацией пользователей.
 
-## Base URL
+## Базовый URL
 `http://localhost:8080/api`
 
-## Initialization
+## Иницилизация
 
-1. Clone repository:
+1. Клонирование репозитория:
 
    ```bash
    git clone git@github.com:enagtim/movielibrary-api.git
    ```
 
-2. Open directory:
+2. Перейти в директорию:
 
    ```bash
    cd movielibrary-api
    ```
 
-3. Create file `.env` in the root of the project:
+3. Создайте файл `.env` в корне проекта:
 
    ```bash
    touch .env
    ```
 
-4. Open `.env` and add:
+4. Откройте `.env` и добавьте:
 
    ```
    DB_USER=postgres
@@ -35,18 +35,18 @@ RESTful API for managing movies, actors, and their relationships with user authe
    JWT_SECRET="/2+XnmJGz1j3ehIVI/5P9kl+CghrE3DcS7rnT+qar5w="
    ```
 
-## Authentication
-Requires JWT token for protected endpoints (except `/auth/register` and `/auth/login`).
+## Аутентификация
+Требуется токен JWT для защищенных ручек (кроме `/auth/register` и `/auth/login`).
 
-## Endpoints
+## Ручки
 
-### Authentication
+### Аутентификация
 | Method | Endpoint       | Description          |
 |--------|----------------|----------------------|
 | POST   | `/auth/register` | Register new user    |
 | POST   | `/auth/login`    | Login and get JWT    |
 
-### Actors
+### Сервис актёров
 | Method | Endpoint             | Description                         | Role Required |
 |--------|----------------------|-------------------------------------|---------------|
 | POST   | `/admin/actors`      | Create new actor                    | admin         |
@@ -56,7 +56,7 @@ Requires JWT token for protected endpoints (except `/auth/register` and `/auth/l
 | PATCH  | `/admin/actors/{id}`| Partially update actor               | admin         |
 | DELETE | `/admin/actors/{id}`| Delete actor                         | admin         |
 
-### Movies
+### Сервис фильмов
 | Method | Endpoint               | Description                         | Role Required |
 |--------|------------------------|-------------------------------------|---------------|
 | POST   | `/admin/movies`        | Create new movie                    | admin         |
@@ -68,23 +68,23 @@ Requires JWT token for protected endpoints (except `/auth/register` and `/auth/l
 | GET    | `/movies/search/title`| Search movies by title               | user          |
 | GET    | `/movies/search/actorname`| Search movies by actor name      | user          |
 
-## Examples
+## Примеры
 
-### Register User
+### Регистрация пользователя
 ```bash
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"user1", "password":"pass123", "role":"user"}'
 ```
 
-### Login
+### Авторизация
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"user1", "password":"pass123"}'
 ```
 
-### Create Actor (Admin)
+### Создать актёра (только для админа)
 ```bash
 curl -X POST http://localhost:8080/api/admin/actors \
   -H "Content-Type: application/json" \
@@ -92,26 +92,26 @@ curl -X POST http://localhost:8080/api/admin/actors \
   -d '{"name":"Leonardo DiCaprio", "gender":"male", "birth_date":"1974-11-11"}'
 ```
 
-### Get Movies Sorted
+### Получить отсортированные фильмы
 ```bash
 curl -X GET "http://localhost:8080/api/movies?sortBy=title" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Search Movies
+### Поиск фильмов
 ```bash
 curl -X GET "http://localhost:8080/api/movies/search/title?title=Inception" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-## Error Responses
+## Ошибки ответов
 - `400 Bad Request` - Invalid input data
 - `401 Unauthorized` - Missing or invalid token
 - `403 Forbidden` - Insufficient permissions
 - `404 Not Found` - Resource not found
 - `500 Internal Server Error` - Server error
 
-## Models
+## Модели
 
 ### User
 ```json
