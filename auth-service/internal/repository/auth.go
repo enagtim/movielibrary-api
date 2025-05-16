@@ -36,7 +36,6 @@ func (r *AuthRepository) Register(ctx context.Context, p *payload.AuthRegisterPa
 	var userID uint
 
 	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&userID)
-
 	if err != nil {
 		return 0, consts.ErrFailedCreateUser
 	}
@@ -62,7 +61,6 @@ func (r *AuthRepository) GetUserByUsername(ctx context.Context, username string)
 		&user.PasswordHash,
 		&user.Role,
 	)
-
 	if err != nil {
 		return nil, consts.ErrFailedGetUserByUserName
 	}

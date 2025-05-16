@@ -20,241 +20,214 @@ func NewMovieHandler(router *http.ServeMux, movieService *service.MovieService) 
 		MovieService: movieService,
 	}
 
-	router.HandleFunc("POST /movies", handler.CreateMovie())
-	router.HandleFunc("GET /movies", handler.GetAllMovies())
-	router.HandleFunc("GET /movies/{id}", handler.GetMovieByID())
-	router.HandleFunc("PUT /movies/{id}", handler.FullUpdateMovieByID())
-	router.HandleFunc("PATCH /movies/{id}", handler.PartialUpdateMovieByID())
-	router.HandleFunc("DELETE /movies/{id}", handler.DeleteMovieByID())
-	router.HandleFunc("GET /movies/search/title", handler.SearchMovieByTitle())
-	router.HandleFunc("GET /movies/search/actorname", handler.SearchMovieByActorName())
+	router.HandleFunc("POST /movies", handler.CreateMovie)
+	router.HandleFunc("GET /movies", handler.GetAllMovies)
+	router.HandleFunc("GET /movies/{id}", handler.GetMovieByID)
+	router.HandleFunc("PUT /movies/{id}", handler.FullUpdateMovieByID)
+	router.HandleFunc("PATCH /movies/{id}", handler.PartialUpdateMovieByID)
+	router.HandleFunc("DELETE /movies/{id}", handler.DeleteMovieByID)
+	router.HandleFunc("GET /movies/search/title", handler.SearchMovieByTitle)
+	router.HandleFunc("GET /movies/search/actorname", handler.SearchMovieByActorName)
 }
 
-func (h *MovieHandler) CreateMovie() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+func (h *MovieHandler) CreateMovie(w http.ResponseWriter, r *http.Request) {
 
-		defer cancel()
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		body, err := req.DecodedAndValidatedBody[payload.MoviePayload](r.Body)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		movieID, err := h.MovieService.Create(ctx, &body)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := &payload.CreateMovieResponse{
-			MovieID: movieID,
-			Message: "Movie was created",
-		}
-
-		res.ResJson(w, data, http.StatusCreated)
-
+	body, err := req.DecodedAndValidatedBody[payload.MoviePayload](r.Body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-}
-func (h *MovieHandler) GetAllMovies() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 
-		defer cancel()
-
-		sortBy := r.URL.Query().Get("sortBy")
-
-		movies, err := h.MovieService.GetAll(ctx, sortBy)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := &payload.GetAllMoviesResponse{
-			Data: movies,
-		}
-
-		res.ResJson(w, data, http.StatusOK)
-
+	movieID, err := h.MovieService.Create(ctx, &body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	data := &payload.CreateMovieResponse{
+		MovieID: movieID,
+		Message: "Movie was created",
+	}
+
+	res.ResJson(w, data, http.StatusCreated)
+
 }
 
-func (h *MovieHandler) GetMovieByID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+func (h *MovieHandler) GetAllMovies(w http.ResponseWriter, r *http.Request) {
 
-		defer cancel()
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		param := r.PathValue("id")
+	sortBy := r.URL.Query().Get("sortBy")
 
-		id, err := strconv.Atoi(param)
-
-		if err != nil {
-			res.ErrResJson(w, "Invalid movie ID", http.StatusBadRequest)
-			return
-		}
-
-		movie, err := h.MovieService.GetByID(ctx, uint(id))
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		res.ResJson(w, movie, http.StatusOK)
-
+	movies, err := h.MovieService.GetAll(ctx, sortBy)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	data := &payload.GetAllMoviesResponse{
+		Data: movies,
+	}
+
+	res.ResJson(w, data, http.StatusOK)
+
 }
 
-func (h *MovieHandler) FullUpdateMovieByID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+func (h *MovieHandler) GetMovieByID(w http.ResponseWriter, r *http.Request) {
 
-		defer cancel()
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		param := r.PathValue("id")
+	param := r.PathValue("id")
 
-		id, err := strconv.Atoi(param)
-
-		if err != nil {
-			res.ErrResJson(w, "Invalid movie ID", http.StatusBadRequest)
-			return
-		}
-
-		body, err := req.DecodedAndValidatedBody[payload.MoviePayload](r.Body)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		err = h.MovieService.FullUpdate(ctx, uint(id), &body)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := &payload.MovieResponse{
-			Message: "Movie was updated",
-		}
-
-		res.ResJson(w, data, http.StatusOK)
-
+	id, err := strconv.Atoi(param)
+	if err != nil {
+		res.ErrResJson(w, "Invalid movie ID", http.StatusBadRequest)
+		return
 	}
+
+	movie, err := h.MovieService.GetByID(ctx, uint(id))
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res.ResJson(w, movie, http.StatusOK)
+
 }
 
-func (h *MovieHandler) PartialUpdateMovieByID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+func (h *MovieHandler) FullUpdateMovieByID(w http.ResponseWriter, r *http.Request) {
 
-		defer cancel()
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		param := r.PathValue("id")
+	param := r.PathValue("id")
 
-		id, err := strconv.Atoi(param)
-
-		if err != nil {
-			res.ErrResJson(w, "Invalid movie ID", http.StatusBadRequest)
-			return
-		}
-
-		body, err := req.DecodedAndValidatedBody[payload.UpdatePartialMoviePayload](r.Body)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		err = h.MovieService.PartialUpdate(ctx, uint(id), &body)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := &payload.MovieResponse{
-			Message: "Movie was updated",
-		}
-
-		res.ResJson(w, data, http.StatusOK)
+	id, err := strconv.Atoi(param)
+	if err != nil {
+		res.ErrResJson(w, "Invalid movie ID", http.StatusBadRequest)
+		return
 	}
+
+	body, err := req.DecodedAndValidatedBody[payload.MoviePayload](r.Body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.MovieService.FullUpdate(ctx, uint(id), &body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := &payload.MovieResponse{
+		Message: "Movie was updated",
+	}
+
+	res.ResJson(w, data, http.StatusOK)
+
 }
 
-func (h *MovieHandler) DeleteMovieByID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+func (h *MovieHandler) PartialUpdateMovieByID(w http.ResponseWriter, r *http.Request) {
 
-		defer cancel()
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		param := r.PathValue("id")
+	param := r.PathValue("id")
 
-		id, err := strconv.Atoi(param)
-
-		if err != nil {
-			res.ErrResJson(w, "Invalid movie ID", http.StatusBadRequest)
-			return
-		}
-
-		err = h.MovieService.Delete(ctx, uint(id))
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := &payload.MovieResponse{
-			Message: "Movie was deleted",
-		}
-
-		res.ResJson(w, data, http.StatusOK)
-
+	id, err := strconv.Atoi(param)
+	if err != nil {
+		res.ErrResJson(w, "Invalid movie ID", http.StatusBadRequest)
+		return
 	}
+
+	body, err := req.DecodedAndValidatedBody[payload.UpdatePartialMoviePayload](r.Body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.MovieService.PartialUpdate(ctx, uint(id), &body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := &payload.MovieResponse{
+		Message: "Movie was updated",
+	}
+
+	res.ResJson(w, data, http.StatusOK)
 }
 
-func (h *MovieHandler) SearchMovieByTitle() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
+func (h *MovieHandler) DeleteMovieByID(w http.ResponseWriter, r *http.Request) {
 
-		title := r.URL.Query().Get("title")
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		movies, err := h.MovieService.SearchMovieByTitle(ctx, title)
+	param := r.PathValue("id")
 
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := &payload.GetAllMoviesResponse{
-			Data: movies,
-		}
-
-		res.ResJson(w, data, http.StatusOK)
+	id, err := strconv.Atoi(param)
+	if err != nil {
+		res.ErrResJson(w, "Invalid movie ID", http.StatusBadRequest)
+		return
 	}
+
+	err = h.MovieService.Delete(ctx, uint(id))
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := &payload.MovieResponse{
+		Message: "Movie was deleted",
+	}
+
+	res.ResJson(w, data, http.StatusOK)
+
 }
-func (h *MovieHandler) SearchMovieByActorName() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
 
-		actorName := r.URL.Query().Get("actorName")
+func (h *MovieHandler) SearchMovieByTitle(w http.ResponseWriter, r *http.Request) {
 
-		movies, err := h.MovieService.SearchMovieByActorName(ctx, actorName)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	title := r.URL.Query().Get("title")
 
-		data := &payload.GetAllMoviesResponse{
-			Data: movies,
-		}
-
-		res.ResJson(w, data, http.StatusOK)
+	movies, err := h.MovieService.SearchMovieByTitle(ctx, title)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	data := &payload.GetAllMoviesResponse{
+		Data: movies,
+	}
+
+	res.ResJson(w, data, http.StatusOK)
+}
+
+func (h *MovieHandler) SearchMovieByActorName(w http.ResponseWriter, r *http.Request) {
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	actorName := r.URL.Query().Get("actorName")
+
+	movies, err := h.MovieService.SearchMovieByActorName(ctx, actorName)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := &payload.GetAllMoviesResponse{
+		Data: movies,
+	}
+
+	res.ResJson(w, data, http.StatusOK)
 }

@@ -24,6 +24,7 @@ func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (
 	if err != nil {
 		return 0, consts.ErrFailedToBeginTx
 	}
+
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -45,7 +46,6 @@ func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (
 	var movieID uint
 
 	err = tx.QueryRowContext(ctx, query, args...).Scan(&movieID)
-
 	if err != nil {
 		return 0, consts.ErrFailedCreateMovie
 	}
@@ -60,6 +60,7 @@ func (r *MovieRepository) Create(ctx context.Context, p *payload.MoviePayload) (
 		if err != nil {
 			return 0, consts.ErrFailedToBuildSQL
 		}
+
 		_, err = tx.ExecContext(ctx, linkQuery, linkArgs...)
 		if err != nil {
 			return 0, consts.ErrFailedToLinkActors
@@ -88,13 +89,11 @@ func (r *MovieRepository) GetAll(ctx context.Context, sortBy string) ([]model.Mo
 		OrderBy(sortField + " DESC").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
-
 	if err != nil {
 		return nil, consts.ErrFailedToBuildSQL
 	}
 
 	rows, err := r.Database.DB.QueryContext(ctx, query, args...)
-
 	if err != nil {
 		return nil, consts.ErrFailedToExecute
 	}
@@ -129,7 +128,6 @@ func (r *MovieRepository) GetByID(ctx context.Context, id uint) (*model.Movie, e
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
-
 	if err != nil {
 		return nil, consts.ErrFailedToBuildSQL
 	}
@@ -140,7 +138,6 @@ func (r *MovieRepository) GetByID(ctx context.Context, id uint) (*model.Movie, e
 		&movie.Description,
 		&movie.ReleaseDate,
 		&movie.Rating)
-
 	if err == sql.ErrNoRows {
 		return nil, consts.ErrMovieNotFound
 	}
@@ -158,13 +155,11 @@ func (r *MovieRepository) FullUpdate(ctx context.Context, id uint, p *payload.Mo
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
-
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
 	}
 
 	_, err = r.Database.DB.ExecContext(ctx, query, args...)
-
 	if err != nil {
 		return consts.ErrFailedUpdateMovie
 	}
@@ -195,7 +190,6 @@ func (r *MovieRepository) PartialUpdate(ctx context.Context, id uint, p *payload
 	}
 
 	query, args, err := updateBuilder.PlaceholderFormat(sq.Dollar).ToSql()
-
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
 	}
@@ -224,13 +218,11 @@ func (r *MovieRepository) Delete(ctx context.Context, id uint) error {
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
-
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
 	}
 
 	_, err = r.Database.DB.ExecContext(ctx, query, args...)
-
 	if err != nil {
 		return consts.ErrFailedDeleteMovie
 	}
@@ -251,7 +243,6 @@ func (r *MovieRepository) SearchMovieByTitle(ctx context.Context, title string) 
 	}
 
 	rows, err := r.Database.DB.QueryContext(ctx, query, args...)
-
 	if err != nil {
 		return nil, consts.ErrFailedToExecute
 	}
@@ -274,10 +265,12 @@ func (r *MovieRepository) SearchMovieByTitle(ctx context.Context, title string) 
 		}
 		movies = append(movies, movie)
 	}
+
 	err = rows.Err()
 	if err != nil {
 		return nil, consts.ErrFailedToProcessRows
 	}
+
 	return movies, nil
 }
 
@@ -293,8 +286,8 @@ func (r *MovieRepository) SearchMovieByActorName(ctx context.Context, actorName 
 	if err != nil {
 		return nil, consts.ErrFailedToBuildSQL
 	}
-	rows, err := r.Database.DB.QueryContext(ctx, query, args...)
 
+	rows, err := r.Database.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, consts.ErrFailedToExecute
 	}
@@ -317,6 +310,7 @@ func (r *MovieRepository) SearchMovieByActorName(ctx context.Context, actorName 
 		}
 		movies = append(movies, movie)
 	}
+
 	err = rows.Err()
 	if err != nil {
 		return nil, consts.ErrFailedToProcessRows

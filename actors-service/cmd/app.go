@@ -52,17 +52,14 @@ func Run() error {
 	log.Println("Shutting down actors microservice...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-
 	defer cancel()
 
 	err = server.Shutdown(ctx)
-
 	if err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
 	err = db.Close()
-
 	if err != nil {
 		log.Printf("Error closing database: %v", err)
 	}

@@ -35,7 +35,6 @@ func (r *ActorRepository) Create(ctx context.Context, p *payload.ActorPayload) (
 	var actorID uint
 
 	err = r.Database.DB.QueryRowContext(ctx, query, args...).Scan(&actorID)
-
 	if err != nil {
 		return 0, consts.ErrFailedCreateActor
 	}
@@ -58,7 +57,6 @@ func (r *ActorRepository) GetActorsWithMovies(ctx context.Context) ([]model.Acto
 		GroupBy("actors.id", "actors.name", "actors.gender", "actors.birth_date").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
-
 	if err != nil {
 		return nil, consts.ErrFailedToBuildSQL
 	}
@@ -67,6 +65,7 @@ func (r *ActorRepository) GetActorsWithMovies(ctx context.Context) ([]model.Acto
 	if err != nil {
 		return nil, consts.ErrFailedToExecute
 	}
+
 	defer rows.Close()
 
 	var results []model.ActorWithMovies
@@ -109,7 +108,6 @@ func (r *ActorRepository) GetById(ctx context.Context, id uint) (*model.Actor, e
 		&actor.Gender,
 		&actor.BirthDate,
 	)
-
 	if err == sql.ErrNoRows {
 		return nil, consts.ErrActorNotFound
 	}
@@ -128,6 +126,7 @@ func (r *ActorRepository) FullUpdate(ctx context.Context, id uint, p *payload.Ac
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
 	}
+
 	_, err = r.Database.DB.ExecContext(ctx, query, args...)
 	if err != nil {
 		return consts.ErrFailedUpdateActor
@@ -149,19 +148,16 @@ func (r *ActorRepository) PartialUpdate(ctx context.Context, id uint, p *payload
 	}
 
 	query, args, err := updateBuilder.PlaceholderFormat(sq.Dollar).ToSql()
-
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
 	}
 
 	res, err := r.Database.DB.ExecContext(ctx, query, args...)
-
 	if err != nil {
 		return consts.ErrFailedToExecute
 	}
 
 	rows, err := res.RowsAffected()
-
 	if err != nil {
 		return consts.ErrInvalidAffectedrows
 	}
@@ -180,13 +176,11 @@ func (r *ActorRepository) Delete(ctx context.Context, id uint) error {
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
-
 	if err != nil {
 		return consts.ErrFailedToBuildSQL
 	}
 
 	_, err = r.Database.DB.ExecContext(ctx, query, args...)
-
 	if err != nil {
 		return consts.ErrFailedDeleteActor
 	}

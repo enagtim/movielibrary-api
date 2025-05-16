@@ -19,63 +19,57 @@ func NewAuthHandler(router *http.ServeMux, authService *service.AuthService) {
 		AuthService: authService,
 	}
 
-	router.HandleFunc("POST /register", handler.RegisterUser())
-	router.HandleFunc("POST /login", handler.LoginUser())
+	router.HandleFunc("POST /register", handler.RegisterUser)
+	router.HandleFunc("POST /login", handler.LoginUser)
 
 }
 
-func (h *AuthHandler) RegisterUser() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		defer cancel()
-
-		body, err := req.DecodedAndValidatedBody[payload.AuthRegisterPayload](r.Body)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		userID, err := h.AuthService.Register(ctx, &body)
-
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := &payload.AuthRegisterResponse{
-			UserID:  userID,
-			Message: "User successfully created",
-		}
-
-		res.ResJson(w, data, http.StatusCreated)
-
+	body, err := req.DecodedAndValidatedBody[payload.AuthRegisterPayload](r.Body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+
+	userID, err := h.AuthService.Register(ctx, &body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := &payload.AuthRegisterResponse{
+		UserID:  userID,
+		Message: "User successfully created",
+	}
+
+	res.ResJson(w, data, http.StatusCreated)
+
 }
 
-func (h *AuthHandler) LoginUser() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
+func (h *AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
-		body, err := req.DecodedAndValidatedBody[payload.AuthLoginPayload](r.Body)
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusBadRequest)
-			return
-		}
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		token, err := h.AuthService.Login(ctx, &body)
-		if err != nil {
-			res.ErrResJson(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		data := &payload.AuthLoginResponse{
-			Token: token,
-		}
-
-		res.ResJson(w, data, http.StatusOK)
+	body, err := req.DecodedAndValidatedBody[payload.AuthLoginPayload](r.Body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+
+	token, err := h.AuthService.Login(ctx, &body)
+	if err != nil {
+		res.ErrResJson(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	data := &payload.AuthLoginResponse{
+		Token: token,
+	}
+
+	res.ResJson(w, data, http.StatusOK)
 }
